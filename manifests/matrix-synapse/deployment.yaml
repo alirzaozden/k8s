@@ -13,9 +13,10 @@ spec:
       labels:
         app: synapse
     spec:
-      containers:
-        - name: synapse
+      initContainers:
+        - name: generate-config
           image: matrixdotorg/synapse:latest
+          command: ["/start.py", "generate"]
           env:
             - name: SYNAPSE_SERVER_NAME
               value: "matrix.local"
@@ -32,6 +33,12 @@ spec:
                 secretKeyRef:
                   name: postgres-secret
                   key: POSTGRES_PASSWORD
+          volumeMounts:
+            - name: synapse-data
+              mountPath: /data
+      containers:
+        - name: synapse
+          image: matrixdotorg/synapse:latest
           ports:
             - containerPort: 8008
           volumeMounts:
