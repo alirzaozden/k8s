@@ -4,7 +4,7 @@ metadata:
   name: vote
   namespace: voting
 spec:
-  replicas: 18
+  replicas: 8
   selector:
     matchLabels:
       app: vote
