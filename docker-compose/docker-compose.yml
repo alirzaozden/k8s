@@ -1,0 +1,70 @@
+services:
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - vote
+      - result
+    restart: always
+
+  vote:
+    image: dockersamples/examplevotingapp_vote:latest
+    restart: always
+
+  redis:
+    image: redis:7-alpine
+    restart: always
+
+  worker:
+    image: dockersamples/examplevotingapp_worker:latest
+    depends_on:
+      - redis
+      - db
+    restart: always
+
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    restart: always
+
+  result:
+    image: dockersamples/examplevotingapp_result:latest
+    depends_on:
+      - db
+    restart: always
+
+  synapse-db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: synapse
+      POSTGRES_USER: synapse_user
+      POSTGRES_PASSWORD: synapsepass123
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --lc-collate=C --lc-ctype=C"
+    volumes:
+      - synapse-db-data:/var/lib/postgresql/data
+    restart: always
+
+  synapse:
+    image: matrixdotorg/synapse:latest
+    environment:
+      SYNAPSE_SERVER_NAME: matrix.local
+      SYNAPSE_REPORT_STATS: "no"
+    ports:
+      - "8008:8008"  
+    volumes:
+      - synapse-data:/data
+    depends_on:
+      - synapse-db
+    restart: always
+
+volumes:
+  db-data:
+  synapse-db-data:
+  synapse-data:
